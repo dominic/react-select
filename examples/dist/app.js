@@ -572,7 +572,14 @@ var GithubUsers = _react2['default'].createClass({
 	gotoUser: function gotoUser(value, event) {
 		window.open(value.html_url);
 	},
+	toggleCreatable: function toggleCreatable() {
+		this.setState({
+			creatable: !this.state.creatable
+		});
+	},
 	render: function render() {
+		var AsyncComponent = this.state.creatable ? _reactSelect2['default'].AsyncCreatable : _reactSelect2['default'].Async;
+
 		return _react2['default'].createElement(
 			'div',
 			{ className: 'section' },
@@ -581,7 +588,7 @@ var GithubUsers = _react2['default'].createClass({
 				{ className: 'section-heading' },
 				this.props.label
 			),
-			_react2['default'].createElement(_reactSelect2['default'].Async, { multi: this.state.multi, value: this.state.value, onChange: this.onChange, onValueClick: this.gotoUser, valueKey: 'id', labelKey: 'login', loadOptions: this.getUsers, minimumInput: 1, backspaceRemoves: false }),
+			_react2['default'].createElement(AsyncComponent, { multi: this.state.multi, value: this.state.value, onChange: this.onChange, onValueClick: this.gotoUser, valueKey: 'id', labelKey: 'login', loadOptions: this.getUsers, minimumInput: 1, backspaceRemoves: false }),
 			_react2['default'].createElement(
 				'div',
 				{ className: 'checkbox-list' },
@@ -603,6 +610,20 @@ var GithubUsers = _react2['default'].createClass({
 						'span',
 						{ className: 'checkbox-label' },
 						'Single Value'
+					)
+				)
+			),
+			_react2['default'].createElement(
+				'div',
+				{ className: 'checkbox-list' },
+				_react2['default'].createElement(
+					'label',
+					{ className: 'checkbox' },
+					_react2['default'].createElement('input', { type: 'checkbox', className: 'checkbox-control', checked: this.state.creatable, onChange: this.toggleCreatable }),
+					_react2['default'].createElement(
+						'span',
+						{ className: 'checkbox-label' },
+						'Creatable?'
 					)
 				)
 			),
@@ -2859,6 +2880,11 @@ var AutoSizer = function (_Component) {
   _createClass(AutoSizer, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
+      // Delay access of parentNode until mount.
+      // This handles edge-cases where the component has already been unmounted before its ref has been set,
+      // As well as libraries like react-lite which have a slightly different lifecycle.
+      this._parentNode = this._autoSizer.parentNode;
+
       // Defer requiring resize handler in order to support server-side rendering.
       // See issue #41
       this._detectElementResize = require('../vendor/detectElementResize');
@@ -2948,8 +2974,7 @@ var AutoSizer = function (_Component) {
   }, {
     key: '_setRef',
     value: function _setRef(autoSizer) {
-      // In case the component has been unmounted
-      this._parentNode = autoSizer && autoSizer.parentNode;
+      this._autoSizer = autoSizer;
     }
   }]);
 
@@ -4002,6 +4027,7 @@ var CollectionView = function (_Component) {
       var _this2 = this;
 
       var _props3 = this.props;
+      var autoHeight = _props3.autoHeight;
       var cellCount = _props3.cellCount;
       var cellLayoutManager = _props3.cellLayoutManager;
       var className = _props3.className;
@@ -4037,7 +4063,7 @@ var CollectionView = function (_Component) {
       }) : [];
 
       var collectionStyle = {
-        height: height,
+        height: autoHeight ? 'auto' : height,
         width: width
       };
 
@@ -4074,7 +4100,7 @@ var CollectionView = function (_Component) {
               height: totalHeight,
               maxHeight: totalHeight,
               maxWidth: totalWidth,
-              pointerEvents: isScrolling ? 'none' : 'auto',
+              pointerEvents: isScrolling ? 'none' : '',
               width: totalWidth
             }
           },
@@ -4315,6 +4341,12 @@ var CollectionView = function (_Component) {
 
 CollectionView.propTypes = {
   'aria-label': _react.PropTypes.string,
+
+  /**
+   * Removes fixed height from the scrollingContainer so that the total height
+   * of rows can stretch the window. Intended for use with WindowScroller
+   */
+  autoHeight: _react.PropTypes.bool,
 
   /**
    * Number of cells in collection.
@@ -6390,7 +6422,7 @@ var Grid = function (_Component) {
               height: totalRowsHeight,
               maxWidth: totalColumnsWidth,
               maxHeight: totalRowsHeight,
-              pointerEvents: isScrolling ? 'none' : 'auto'
+              pointerEvents: isScrolling ? 'none' : ''
             }
           },
           childrenToDisplay
